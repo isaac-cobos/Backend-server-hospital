@@ -1,10 +1,7 @@
 var express = require('express');
 var bcrypt = require('bcryptjs');
 var app = express();
-var mdAutenticacion = require('../middlewares/autenticación');
-
-var jwt = require('jsonwebtoken');
-var SEED = require('../config/config').SEED;
+var mdAutenticacion = require('../middlewares/autenticacion');
 
 var Usuario = require('../models/usuario');
 
@@ -13,19 +10,27 @@ var Usuario = require('../models/usuario');
 //===================================
 
 app.get('/', (req, res, next) => {
-  Usuario.find({}, 'nombre email img role').exec((err, usuarios) => {
-    if (err) {
-      return res.status(500).json({
-        ok: false,
-        mensaje: 'Error cargando usuario',
-        errors: err
+  let desde = req.query.desde || 0;
+  desde = Number(desde);
+  Usuario.find({}, 'nombre email img role')
+    .skip(desde)
+    .limit(5)
+    .exec((err, usuarios) => {
+      if (err) {
+        return res.status(500).json({
+          ok: false,
+          mensaje: 'Error cargando usuario',
+          errors: err
+        });
+      }
+      Usuario.count({}, (err, conteo) => {
+        res.status(200).json({
+          ok: true,
+          usuarios: usuarios,
+          total: conteo
+        });
       });
-    }
-    res.status(200).json({
-      ok: true,
-      usuarios: usuarios
     });
-  });
 });
 
 //===================================
@@ -57,7 +62,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 
     usuario.save((err, usuarioGuardado) => {
       if (err) {
-        return res.status(400).json({
+        res.status(400).json({
           ok: false,
           mensaje: 'Error al actualizar usuario',
           errors: err
