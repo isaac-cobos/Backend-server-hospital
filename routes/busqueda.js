@@ -27,7 +27,7 @@ app.get('/coleccion/:tabla/:busqueda',(req, res)=> {
       break;
 
     case 'hospitales':
-     promesa = busquedaHospitales(busquedas, regex);
+     promesa = busquedaHospitales(busqueda, regex);
      break; 
 
      default:
